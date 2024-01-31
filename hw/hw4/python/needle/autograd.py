@@ -332,6 +332,12 @@ class Tensor(Value):
         else:
             return needle.ops.AddScalar(-other)(self)
 
+    def __rsub__(self, other):
+        if isinstance(other, Tensor):
+            return needle.ops.EWiseAdd()(needle.ops.Negate()(self), other)
+        else:
+            return needle.ops.AddScalar(other)(-self)
+
     def __truediv__(self, other):
         if isinstance(other, Tensor):
             return needle.ops.EWiseDiv()(self, other)
@@ -361,7 +367,7 @@ class Tensor(Value):
 
     __radd__ = __add__
     __rmul__ = __mul__
-    __rsub__ = __sub__
+    #__rsub__ = __sub__
     __rmatmul__ = __matmul__
 
 
@@ -381,7 +387,14 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
 
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    for node in reverse_topo_order:
+        node.grad = sum_node_list(node_to_output_grads_list[node])
+
+        for idx, in_node in enumerate(node.inputs):
+            grads = node.op.gradient_as_tuple(node.grad, node)
+            if in_node not in node_to_output_grads_list:
+                node_to_output_grads_list[in_node] = []
+            node_to_output_grads_list[in_node].append(grads[idx])
     ### END YOUR SOLUTION
 
 
@@ -394,14 +407,27 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
     sort.
     """
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    visited = {}
+    topo_order = []
+
+    for node in node_list:
+        if node not in visited.keys():
+            topo_sort_dfs(node, visited, topo_order)
+
+    return topo_order
     ### END YOUR SOLUTION
 
 
 def topo_sort_dfs(node, visited, topo_order):
     """Post-order DFS"""
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    visited[node] = True
+    for input_node in node.inputs:
+        if input_node not in visited.keys():
+            visited[input_node] = True
+            topo_sort_dfs(input_node, visited, topo_order)
+
+    topo_order.append(node)
     ### END YOUR SOLUTION
 
 
