@@ -28,7 +28,6 @@ struct AlignedArray {
   }
   ~AlignedArray() { free(ptr); }
   size_t ptr_as_int() {return (size_t)ptr; }
-
   scalar_t* ptr;
   size_t size;
 };
@@ -399,7 +398,6 @@ void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out
       }
     }
   }
-
   /// END SOLUTION
 }
 
